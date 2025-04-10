@@ -1,28 +1,53 @@
 {
   "expo": {
-    "name": "my-first-app",
+    "name": "Memphis AI",
     "slug": "my-first-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo_company.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo_company.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "buildNumber": "1",
+      "version": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo_company.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.memphisai.app",
+      "versionCode": 1,
+      "version": "1.0.0",
+      "permissions": [
+        "INTERNET"
+      ],
+      "jsEngine": "hermes"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6231c1b4-93a3-4d0a-8648-aee36ae58f0e"
+      }
+    },
+    "plugins": [
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ]
+    ],
+    "assetBundlePatterns": [
+      "assets/*"
+    ]
   }
 }

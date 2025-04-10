@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Allow users to write and read their own analytics data
+    match /users/{userId}/analytics/{document=**} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Allow users to read and write their interactions
+    match /users/{userId}/interactions/{document=**} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Chat structure rules
+    match /users/{userId}/chats/{chatId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
+    }
+
+    // Allow reading freeAccess documents by email without authentication
+    match /freeAccess/{email} {
+      allow read: if true;  // Anyone can read specific email document
+      allow write: if false; // Only admins can write
+    }
+
+    // Rules for system/config document
+    match /system/config {
+      allow read: if true;  // Allow anyone to read
+      allow write: if false; // Only admins should update this
+    }
+
+    // Rules for users collection
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Rules for subscriptions collection
+    match /subscriptions/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Rules for messages collection (for analytics)
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Rules for userChats collection and its subcollections
+    match /userChats/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      
+      match /chats/{chatId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
+      
+      match /archived/{chatId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
+    }
+
+    // Rules for main chats collection
+    match /chats/{chatId} {
+      allow create: if isAuthenticated();
+      allow read, write: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/userChats/$(request.auth.uid)/chats/$(chatId)) ||
+        exists(/databases/$(database)/documents/userChats/$(request.auth.uid)/archived/$(chatId));
+
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated() && 
+          exists(/databases/$(database)/documents/userChats/$(request.auth.uid)/chats/$(chatId)) ||
+          exists(/databases/$(database)/documents/userChats/$(request.auth.uid)/archived/$(chatId));
+      }
+    }
+
+    // Add rules for user game data
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Ensure users can access their own game data
+    match /users/{userId}/gameData/{gameId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow access to user's own storage
+    match /users/{userId}/chat_attachments/{document=**} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+  }
+}
